@@ -277,6 +277,66 @@ class DLI_Scraper {
         $data['description']       = self::sanitize_html_content($data['description']);
         $data['short_description'] = self::sanitize_html_content($data['short_description']);
 
+        // 3. Varyasyonları ve Nitelikleri Tara (Stokta olan ve olmayan TÜMÜ)
+        $data['is_variable'] = false;
+        $data['attributes']  = array();
+        $data['variations']  = array();
+
+        // 3.1 Formdaki Nitelikler ve Seçenekler
+        if (preg_match_all("/<th[^>]*class=[\x27\"][^\x27\"]*label[^\x27\"]*[\x27\"][^>]*>.*?<label\s+for=[\x27\"]([^\x27\"]+)[\x27\"][^>]*>(.*?)<\/label>.*?<\/th>\s*<td[^>]*>.*?<select[^>]+name=[\x27\"]([^\x27\"]+)[\x27\"][^>]*>(.*?)<\/select>/is", $html, $m)) {
+            for ($i = 0; $i < count($m[0]); $i++) {
+                $attr_id     = trim($m[1][$i]);
+                $attr_name   = trim(strip_tags($m[2][$i]));
+                $attr_name   = html_entity_decode($attr_name, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                $select_name = trim($m[3][$i]);
+                $select_html = $m[4][$i];
+
+                $options = array();
+                if (preg_match_all("/<option\s+value=[\x27\"]([^\x27\"]+)[\x27\"][^>]*>/is", $select_html, $opt_m)) {
+                    foreach ($opt_m[1] as $val) {
+                        $val = trim(html_entity_decode($val, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+                        if (!empty($val)) {
+                            $options[] = $val;
+                        }
+                    }
+                }
+
+                $data['attributes'][$attr_id] = array(
+                    'name'        => $attr_name,
+                    'select_name' => $select_name,
+                    'options'     => array_values(array_unique($options)),
+                );
+            }
+        }
+
+        // 3.2 data-product_variations JSON ayrıştırma
+        if (preg_match('/data-product_variations=[\x27\"](.*?)[\x27\"]/is', $html, $var_m)) {
+            $raw_json = html_entity_decode($var_m[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $raw_vars = json_decode($raw_json, true);
+            if (is_array($raw_vars) && !empty($raw_vars)) {
+                $data['is_variable'] = true;
+                foreach ($raw_vars as $v) {
+                    $reg_p  = !empty($v['display_regular_price']) ? (float)$v['display_regular_price'] : (float)(isset($v['display_price']) ? $v['display_price'] : 0);
+                    $sale_p = !empty($v['display_price']) && (float)$v['display_price'] < $reg_p ? (float)$v['display_price'] : 0;
+
+                    $var_atts = array();
+                    if (!empty($v['attributes']) && is_array($v['attributes'])) {
+                        foreach ($v['attributes'] as $k => $val) {
+                            $var_atts[$k] = html_entity_decode($val, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                        }
+                    }
+
+                    $data['variations'][] = array(
+                        'sku'           => isset($v['sku']) ? $v['sku'] : '',
+                        'regular_price' => $reg_p,
+                        'sale_price'    => $sale_p,
+                        'is_in_stock'   => !empty($v['is_in_stock']), // Stok durumu
+                        'attributes'    => $var_atts,
+                    );
+                }
+            }
+        }
+
         return $data;
     }
 
