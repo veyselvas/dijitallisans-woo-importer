@@ -66,10 +66,11 @@ class DLI_Admin {
     public static function render_admin_page() {
         $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'bulk';
 
-        $api_key        = get_option('dli_openrouter_api_key', '');
-        $model          = get_option('dli_openrouter_model', 'google/gemini-2.0-flash-001');
-        $enable_ai      = get_option('dli_enable_ai', 'yes');
-        $margin_fixed   = get_option('dli_margin_fixed', '0');
+        $api_key             = get_option('dli_openrouter_api_key', '');
+        $model               = get_option('dli_openrouter_model', 'google/gemini-2.0-flash-001');
+        $enable_ai           = get_option('dli_enable_ai', 'yes');
+        $keep_original_title = get_option('dli_keep_original_title', 'yes');
+        $margin_fixed        = get_option('dli_margin_fixed', '0');
         $margin_percent = get_option('dli_margin_percent', '0');
         $product_status = get_option('dli_product_status', 'publish');
         $duplicate_mode = get_option('dli_duplicate_mode', 'update');
@@ -266,6 +267,17 @@ class DLI_Admin {
                                             <p class="description">Dilediğiniz OpenRouter model kimliğini girebilirsiniz.</p>
                                         </td>
                                     </tr>
+
+                                    <tr>
+                                        <th scope="row"><label for="dli_keep_original_title">Ürün Başlıkları</label></th>
+                                        <td>
+                                            <select id="dli_keep_original_title" name="dli_keep_original_title" style="max-width: 400px;">
+                                                <option value="yes" <?php selected($keep_original_title, 'yes'); ?>>Orijinal Başlığı Birebir Koru (Tavsiye Edilen)</option>
+                                                <option value="no" <?php selected($keep_original_title, 'no'); ?>>Başlığı da Yapay Zekaya Yeniden Yazdır</option>
+                                            </select>
+                                            <p class="description">"Orijinal Başlığı Birebir Koru" seçildiğinde ürün adı kaynak sitedekiyle aynı kalır; sadece açıklamalar ve Yoast SEO alanları özgünleştirilir.</p>
+                                        </td>
+                                    </tr>
                                 </table>
                             </div>
                         </div>
@@ -415,18 +427,20 @@ class DLI_Admin {
             wp_send_json_error(array('message' => 'Yetkisiz erişim.'));
         }
 
-        $api_key        = isset($_POST['dli_openrouter_api_key']) ? sanitize_text_field($_POST['dli_openrouter_api_key']) : '';
-        $model          = isset($_POST['dli_openrouter_model']) ? sanitize_text_field($_POST['dli_openrouter_model']) : 'google/gemini-2.0-flash-001';
-        $enable_ai      = isset($_POST['dli_enable_ai']) && $_POST['dli_enable_ai'] === 'yes' ? 'yes' : 'no';
-        $margin_fixed   = isset($_POST['dli_margin_fixed']) ? (float)$_POST['dli_margin_fixed'] : 0;
-        $margin_percent = isset($_POST['dli_margin_percent']) ? (float)$_POST['dli_margin_percent'] : 0;
-        $product_status = isset($_POST['dli_product_status']) && $_POST['dli_product_status'] === 'draft' ? 'draft' : 'publish';
-        $duplicate_mode = isset($_POST['dli_duplicate_mode']) && $_POST['dli_duplicate_mode'] === 'skip' ? 'skip' : 'update';
-        $is_virtual     = isset($_POST['dli_is_virtual']) && $_POST['dli_is_virtual'] === 'no' ? 'no' : 'yes';
+        $api_key             = isset($_POST['dli_openrouter_api_key']) ? sanitize_text_field($_POST['dli_openrouter_api_key']) : '';
+        $model               = isset($_POST['dli_openrouter_model']) ? sanitize_text_field($_POST['dli_openrouter_model']) : 'google/gemini-2.0-flash-001';
+        $enable_ai           = isset($_POST['dli_enable_ai']) && $_POST['dli_enable_ai'] === 'yes' ? 'yes' : 'no';
+        $keep_original_title = isset($_POST['dli_keep_original_title']) && $_POST['dli_keep_original_title'] === 'no' ? 'no' : 'yes';
+        $margin_fixed        = isset($_POST['dli_margin_fixed']) ? (float)$_POST['dli_margin_fixed'] : 0;
+        $margin_percent      = isset($_POST['dli_margin_percent']) ? (float)$_POST['dli_margin_percent'] : 0;
+        $product_status      = isset($_POST['dli_product_status']) && $_POST['dli_product_status'] === 'draft' ? 'draft' : 'publish';
+        $duplicate_mode      = isset($_POST['dli_duplicate_mode']) && $_POST['dli_duplicate_mode'] === 'skip' ? 'skip' : 'update';
+        $is_virtual          = isset($_POST['dli_is_virtual']) && $_POST['dli_is_virtual'] === 'no' ? 'no' : 'yes';
 
         update_option('dli_openrouter_api_key', $api_key);
         update_option('dli_openrouter_model', $model);
         update_option('dli_enable_ai', $enable_ai);
+        update_option('dli_keep_original_title', $keep_original_title);
         update_option('dli_margin_fixed', $margin_fixed);
         update_option('dli_margin_percent', $margin_percent);
         update_option('dli_product_status', $product_status);

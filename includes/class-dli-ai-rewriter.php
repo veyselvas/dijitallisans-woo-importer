@@ -56,13 +56,15 @@ class DLI_AI_Rewriter {
             $raw_desc = mb_substr($raw_desc, 0, 3000, 'UTF-8') . '...';
         }
 
+        $keep_original_title = get_option('dli_keep_original_title', 'yes');
+
         $system_prompt = "Sen profesyonel bir e-ticaret metin yazarı ve Yoast SEO uzmanısın.
-Sana verilen dijital lisans veya yazılım ürününün bilgilerini inceleyip, arama motorlarında yüksek sıralama alacak, %100 özgün, ikna edici, profesyonel ve modern bir dille yeniden yazacaksın.
+Sana verilen dijital lisans veya yazılım ürününün bilgilerini inceleyip, arama motorlarında yüksek sıralama alacak, %100 özgün, ikna edici, profesyonel ve modern bir dille açıklamaları yeniden yazacaksın.
 
 KURALLAR:
-1. 'title': Özgün, çekici ve SEO uyumlu ürün başlığı (örn: 'Office 365 Pro Plus Süresiz Dijital Lisans Hesabı').
-2. 'short_description': 1-2 cümlelik vurucu, özet ürün tanıtımı.
-3. 'description': Zengin HTML etiketleri (<h3>, <p>, <ul>, <li>, <strong>) kullanarak yapılandırılmış, özellikler, anında teslimat, aktivasyon kolaylığı ve avantajları içeren detaylı açıklama.
+1. 'title': " . ($keep_original_title === 'yes' ? "Orijinal ürün başlığını AYNEN koru, kesinlikle değiştirme." : "Özgün, çekici ve SEO uyumlu ürün başlığı yaz.") . "
+2. 'short_description': 1-2 cümlelik vurucu, özgün özet ürün tanıtımı.
+3. 'description': Zengin HTML etiketleri (<h3>, <p>, <ul>, <li>, <strong>) kullanarak yapılandırılmış, özellikler, anında teslimat, aktivasyon kolaylığı ve avantajları içeren tamamen özgün ve detaylı açıklama.
 4. 'yoast_title': Yoast SEO için optimize edilmiş arama başlığı (Maksimum 60 karakter).
 5. 'yoast_metadesc': Yoast SEO için tıklama oranını artıran meta açıklaması (Maksimum 150-155 karakter).
 6. 'yoast_focuskw': En uygun tek veya 2-3 kelimelik odak anahtar kelime (örn: 'Office 365 Pro Plus', 'Windows 11 Pro Key').
@@ -75,7 +77,7 @@ Orijinal Açıklama / Özellikler: " . $raw_desc . "
 
 Lütfen sadece şu JSON formatında cevap ver:
 {
-  \"title\": \"...\",
+  \"title\": \"" . addslashes($product_data['title']) . "\",
   \"short_description\": \"...\",
   \"description\": \"...\",
   \"yoast_title\": \"...\",
@@ -140,9 +142,13 @@ Lütfen sadece şu JSON formatında cevap ver:
         }
 
         // Başarılı ayrıştırma
-        if (!empty($parsed['title'])) {
+        if ($keep_original_title === 'yes') {
+            // Kullanıcı isteği: Başlık her zaman orijinal kalır
+            $result['title'] = $product_data['title'];
+        } elseif (!empty($parsed['title'])) {
             $result['title'] = sanitize_text_field($parsed['title']);
         }
+
         if (!empty($parsed['short_description'])) {
             $result['short_description'] = wp_kses_post($parsed['short_description']);
         }
