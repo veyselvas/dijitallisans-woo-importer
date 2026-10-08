@@ -240,14 +240,14 @@ class DLI_Admin {
                                     <tr>
                                         <th scope="row"><label for="dli_openrouter_api_key">OpenRouter API Key</label></th>
                                         <td>
-                                            <div style="display: flex; gap: 8px; align-items: center; max-width: 500px;">
-                                                <input type="password" id="dli_openrouter_api_key" name="dli_openrouter_api_key" value="<?php echo esc_attr($api_key); ?>" class="regular-text" placeholder="sk-or-v1-...">
+                                            <div style="display: flex; gap: 8px; align-items: center; max-width: 600px;">
+                                                <input type="text" id="dli_openrouter_api_key" name="dli_openrouter_api_key" value="<?php echo esc_attr($api_key); ?>" class="regular-text" placeholder="sk-or-v1-..." autocomplete="off" spellcheck="false" style="font-family: monospace;">
                                                 <button type="button" id="dli-btn-test-ai" class="button button-secondary">
                                                     Bağlantıyı Test Et
                                                 </button>
                                             </div>
                                             <span id="dli-ai-test-result" style="display: inline-block; margin-top: 5px;"></span>
-                                            <p class="description">OpenRouter API anahtarınızı <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> adresinden temin edebilirsiniz.</p>
+                                            <p class="description">OpenRouter API anahtarınızı <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> adresinden temin edebilirsiniz (Anahtar <code>sk-or-v1-...</code> şeklinde başlar).</p>
                                         </td>
                                     </tr>
 

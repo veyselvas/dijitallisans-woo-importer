@@ -177,6 +177,9 @@ Lütfen sadece şu JSON formatında cevap ver:
      * @return array Sonuç durumu ve mesajı
      */
     public static function test_connection($api_key, $model) {
+        $api_key = trim($api_key);
+        $api_key = preg_replace('/^Bearer\s+/i', '', $api_key);
+
         if (empty($api_key)) {
             return array('success' => false, 'message' => 'Lütfen API anahtarı giriniz.');
         }
