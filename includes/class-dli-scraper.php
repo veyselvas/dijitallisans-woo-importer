@@ -221,18 +221,17 @@ class DLI_Scraper {
             }
         }
 
-        // Fiyatlar (Regular & Sale Price)
-        // İndirimli ve normal fiyat ayrımı: .price del ve .price ins
-        $del_price = $xpath->query("//p[contains(@class, 'price')]//del//span[contains(@class, 'woocommerce-Price-amount')] | //span[contains(@class, 'price')]//del//span[contains(@class, 'woocommerce-Price-amount')]");
-        $ins_price = $xpath->query("//p[contains(@class, 'price')]//ins//span[contains(@class, 'woocommerce-Price-amount')] | //span[contains(@class, 'price')]//ins//span[contains(@class, 'woocommerce-Price-amount')]");
+        // Fiyatlar (Regular & Sale Price - Sadece Ana Ürün Özet Alanından)
+        $del_price = $xpath->query("//div[contains(@class, 'entry-summary')]//p[contains(@class, 'price')]//del//span[contains(@class, 'woocommerce-Price-amount')] | //div[contains(@class, 'entry-summary')]//span[contains(@class, 'price')]//del//span[contains(@class, 'woocommerce-Price-amount')]");
+        $ins_price = $xpath->query("//div[contains(@class, 'entry-summary')]//p[contains(@class, 'price')]//ins//span[contains(@class, 'woocommerce-Price-amount')] | //div[contains(@class, 'entry-summary')]//span[contains(@class, 'price')]//ins//span[contains(@class, 'woocommerce-Price-amount')]");
 
         if ($del_price->length > 0 && $ins_price->length > 0) {
             $data['regular_price'] = self::clean_price($del_price->item(0)->textContent);
             $data['sale_price']    = self::clean_price($ins_price->item(0)->textContent);
         } else {
             // Tek fiyat
-            $single_price = $xpath->query("//p[contains(@class, 'price')]//span[contains(@class, 'woocommerce-Price-amount')] | //span[contains(@class, 'price')]//span[contains(@class, 'woocommerce-Price-amount')]");
-            if ($single_price->length > 0 && empty($data['regular_price'])) {
+            $single_price = $xpath->query("//div[contains(@class, 'entry-summary')]//p[contains(@class, 'price')]//span[contains(@class, 'woocommerce-Price-amount')] | //div[contains(@class, 'entry-summary')]//span[contains(@class, 'price')]//span[contains(@class, 'woocommerce-Price-amount')]");
+            if ($single_price->length > 0) {
                 $data['regular_price'] = self::clean_price($single_price->item(0)->textContent);
             }
         }
@@ -333,6 +332,12 @@ class DLI_Scraper {
                         'is_in_stock'   => !empty($v['is_in_stock']), // Stok durumu
                         'attributes'    => $var_atts,
                     );
+                }
+
+                // Varyasyonlu ürünlerde ana fiyatı ilk varyasyondan al
+                if (!empty($data['variations'][0])) {
+                    $data['regular_price'] = $data['variations'][0]['regular_price'];
+                    $data['sale_price']    = $data['variations'][0]['sale_price'];
                 }
             }
         }

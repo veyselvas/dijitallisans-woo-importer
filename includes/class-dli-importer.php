@@ -270,13 +270,19 @@ class DLI_Importer {
         // (NOT: Kullanıcı kuralı gereği görsel indirme / media attachment KESİNLİKLE YAPILMADI).
 
         // Başarılı Sonuç
-        $final_price = $prices['sale_price'] > 0 ? $prices['sale_price'] : $prices['regular_price'];
+        if ($is_variable_product) {
+            $final_price_str = number_format((float)$min_var_price, 2, ',', '.') . ' - ' . number_format((float)$max_var_price, 2, ',', '.') . ' TL';
+        } else {
+            $final_price = $prices['sale_price'] > 0 ? $prices['sale_price'] : $prices['regular_price'];
+            $final_price_str = number_format((float)$final_price, 2, ',', '.') . ' TL';
+        }
+
         return array(
             'success'    => true,
             'action'     => $action,
             'product_id' => $product_id,
             'title'      => $rewritten['title'],
-            'price'      => number_format((float)$final_price, 2, ',', '.') . ' TL',
+            'price'      => $final_price_str,
             'url'        => $source_url,
             'edit_url'   => get_edit_post_link($product_id, 'raw'),
             'message'    => ($action === 'created' ? 'Yeni ürün eklendi' : 'Mevcut ürün güncellendi') . $ai_log,

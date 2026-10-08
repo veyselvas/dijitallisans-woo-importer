@@ -91,11 +91,12 @@ Lütfen sadece şu JSON formatında cevap ver:
                 array('role' => 'system', 'content' => $system_prompt),
                 array('role' => 'user', 'content' => $user_prompt),
             ),
-            'temperature' => 0.6,
+            'temperature' => 0.5,
+            'max_tokens'  => 1200,
         );
 
         $response = wp_remote_post(self::OPENROUTER_ENDPOINT, array(
-            'timeout'     => 45,
+            'timeout'     => 60,
             'headers'     => array(
                 'Authorization' => 'Bearer ' . trim($api_key),
                 'Content-Type'  => 'application/json',
